@@ -385,7 +385,7 @@ CoordinateOperation::normalizeForVisualization() const {
  * It should not be used after the context has been destroyed.
  *
  * @param ctx Execution context to which the transformer will be tied to.
- *            If null, the default context will be used (only sfe for
+ *            If null, the default context will be used (only safe for
  *            single-threaded applications).
  * @return a new CoordinateTransformer instance.
  * @since 9.3
@@ -438,6 +438,9 @@ CoordinateTransformer::create(const CoordinateOperationNNPtr &op,
                               PJ_CONTEXT *ctx) {
     auto transformer = NN_NO_CHECK(
         CoordinateTransformer::make_unique<CoordinateTransformer>());
+    // pj_obj_create does not sanitize the context
+    if (ctx == nullptr)
+        ctx = pj_get_default_ctx();
     transformer->d->pj_ = pj_obj_create(ctx, op);
     if (transformer->d->pj_ == nullptr)
         throw util::UnsupportedOperationException(
@@ -1440,8 +1443,8 @@ bool SingleOperation::_isEquivalentTo(const util::IComparable *other,
                 isTOWGS84Transf(otherMethodEPSGCode)) {
                 auto transf = static_cast<const Transformation *>(this);
                 auto otherTransf = static_cast<const Transformation *>(otherSO);
-                auto params = transf->getTOWGS84Parameters();
-                auto otherParams = otherTransf->getTOWGS84Parameters();
+                auto params = transf->getTOWGS84Parameters(true);
+                auto otherParams = otherTransf->getTOWGS84Parameters(true);
                 assert(params.size() == 7);
                 assert(otherParams.size() == 7);
                 for (size_t i = 0; i < 7; i++) {
@@ -1867,9 +1870,40 @@ static const std::string &_getNTv2Filename(const SingleOperation *op,
 
 // ---------------------------------------------------------------------------
 //! @cond Doxygen_Suppress
-const std::string &Transformation::getNTv2Filename() const {
+const std::string &Transformation::getPROJ4NadgridsCompatibleFilename() const {
 
-    return _getNTv2Filename(this, false);
+    const std::string &filename = _getNTv2Filename(this, false);
+    if (!filename.empty()) {
+        return filename;
+    }
+
+    if (method()->getEPSGCode() == EPSG_CODE_METHOD_NADCON) {
+        const auto &latitudeFileParameter =
+            parameterValue(EPSG_NAME_PARAMETER_LATITUDE_DIFFERENCE_FILE,
+                           EPSG_CODE_PARAMETER_LATITUDE_DIFFERENCE_FILE);
+        const auto &longitudeFileParameter =
+            parameterValue(EPSG_NAME_PARAMETER_LONGITUDE_DIFFERENCE_FILE,
+                           EPSG_CODE_PARAMETER_LONGITUDE_DIFFERENCE_FILE);
+        if (latitudeFileParameter &&
+            latitudeFileParameter->type() == ParameterValue::Type::FILENAME &&
+            longitudeFileParameter &&
+            longitudeFileParameter->type() == ParameterValue::Type::FILENAME) {
+            return latitudeFileParameter->valueFile();
+        }
+    }
+
+    if (ci_equal(method()->nameStr(),
+                 PROJ_WKT2_NAME_METHOD_HORIZONTAL_SHIFT_GTIFF)) {
+        const auto &fileParameter = parameterValue(
+            EPSG_NAME_PARAMETER_LATITUDE_LONGITUDE_DIFFERENCE_FILE,
+            EPSG_CODE_PARAMETER_LATITUDE_LONGITUDE_DIFFERENCE_FILE);
+        if (fileParameter &&
+            fileParameter->type() == ParameterValue::Type::FILENAME) {
+            return fileParameter->valueFile();
+        }
+    }
+
+    return nullString;
 }
 //! @endcond
 

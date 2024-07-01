@@ -33,7 +33,8 @@ jobs:
           - container: "proj-docs"
             dockerfile: "./Dockerfile"
     env:
-      PUSH_PACKAGES: ${{ github.repository_owner == 'OSGeo' && github.ref_name == 'master' && github.event_name == 'push' }}
+      # Only push proj-docs package for master
+      PUSH_PACKAGES: ${{ github.repository_owner == 'OSGeo' && github.event_name != 'pull_request' && (matrix.container == 'proj' || (matrix.container == 'proj-docs' && github.ref_name == 'master')) }}
       CONTAINER: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
@@ -71,7 +72,7 @@ jobs:
           echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
       - name: Build image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: ${{ env.PUSH_PACKAGES == 'true' }}
           builder: ${{ steps.buildx.outputs.name }}

@@ -400,6 +400,7 @@ osgeo::proj::io::DatabaseContext::lookForGridInfo(std::string const&, bool, std:
 osgeo::proj::io::DatabaseContext::startInsertStatementsSession()
 osgeo::proj::io::DatabaseContext::stopInsertStatementsSession()
 osgeo::proj::io::DatabaseContext::suggestsCodeFor(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::common::IdentifiedObject> > const&, std::string const&, bool)
+osgeo::proj::io::DatabaseContext::toWGS84AutocorrectWrongValues(double&, double&, double&, double&, double&, double&, double&) const
 osgeo::proj::io::FactoryException::~FactoryException()
 osgeo::proj::io::FactoryException::FactoryException(char const*)
 osgeo::proj::io::FactoryException::FactoryException(osgeo::proj::io::FactoryException const&)
@@ -757,7 +758,7 @@ osgeo::proj::operation::Transformation::createTimeDependentPositionVector(osgeo:
 osgeo::proj::operation::Transformation::createTOWGS84(dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, std::vector<double, std::allocator<double> > const&)
 osgeo::proj::operation::Transformation::createVERTCON(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, std::string const&, std::vector<dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::metadata::PositionalAccuracy> >, std::allocator<dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::metadata::PositionalAccuracy> > > > const&)
 osgeo::proj::operation::Transformation::createVerticalOffset(osgeo::proj::util::PropertyMap const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::crs::CRS> > const&, osgeo::proj::common::Length const&, std::vector<dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::metadata::PositionalAccuracy> >, std::allocator<dropbox::oxygen::nn<std::shared_ptr<osgeo::proj::metadata::PositionalAccuracy> > > > const&)
-osgeo::proj::operation::Transformation::getTOWGS84Parameters() const
+osgeo::proj::operation::Transformation::getTOWGS84Parameters(bool) const
 osgeo::proj::operation::Transformation::inverse() const
 osgeo::proj::operation::Transformation::sourceCRS() const
 osgeo::proj::operation::Transformation::targetCRS() const

@@ -6453,10 +6453,24 @@ void CoordinateOperationFactory::Private::createOperationsCompoundToGeog(
                                           createGravityRelatedHeight(
                                               common::UnitOfMeasure::METRE)
                                               ->axisList()[0]);
-                    interpToTargetOps = createOperations(
+                    auto interpToTargetOpsTmp = createOperations(
                         interp3D, util::optional<common::DataEpoch>(),
                         targetCRS, util::optional<common::DataEpoch>(),
                         context);
+                    for (auto &op : interpToTargetOpsTmp) {
+                        // Skip operations that are clearly 2D only as they
+                        // would result in mis-interpreting the ellipsoidal
+                        // height of the interpolation CRS as the one of the
+                        // target CRS.
+                        const SingleOperation *so =
+                            dynamic_cast<const SingleOperation *>(op.get());
+                        if (!so ||
+                            so->method()->nameStr().find(
+                                PROJ_WKT2_NAME_METHOD_HORIZONTAL_SHIFT_GTIFF) ==
+                                std::string::npos) {
+                            interpToTargetOps.push_back(std::move(op));
+                        }
+                    }
                 };
 
                 if (!key.empty()) {
